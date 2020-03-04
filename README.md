@@ -1,0 +1,53 @@
+Intro to the googlesheets4 package
+================
+Kelly & Will
+
+Documentation: <https://googlesheets4.tidyverse.org/>
+
+``` r
+library(tidyverse)
+library(googlesheets4)
+# have to run this interactively the first time to grant acess
+sheet <- read_sheet('https://docs.google.com/spreadsheets/d/16equFGApqiclh7cZhtSeMRvSObYCBIRDWCkaFBEtA38/edit#gid=1648029123', 
+                    sheet = '2018', skip = 3)
+head(sheet)
+```
+
+## Task
+
+1.  Read in the 2018 page.
+2.  Extract the names of the presenters & the type of presentation they
+    gave.
+3.  Create a new tab in the schloss\_code\_club gsheet.
+
+<!-- end list -->
+
+``` r
+sheet_1 <- sheet %>%
+    select("Code Review / Journal Club", "Presenter CR/JC") %>%
+    rename(name = "Presenter CR/JC", 
+           presentation_type = "Code Review / Journal Club")
+sheet_2 <- sheet %>%
+    select("Research Talk / Chalk talk", "Presenter RT/CT") %>%
+    rename(name = "Presenter RT/CT", 
+           presentation_type = "Research Talk / Chalk talk")
+non_names <- c("HOLIDAYS", "4th of July Holiday", "NA")
+sheet_combined <-
+    bind_rows(sheet_1, sheet_2) %>% 
+    filter(!(name %in% non_names)) %>% 
+    filter(!is.na(name))
+head(sheet_combined)
+```
+
+``` r
+sheet_tally <- sheet_combined %>% 
+    group_by(name, presentation_type) %>%
+    tally()
+head(sheet_tally)
+```
+
+``` r
+sheets_write(sheet_tally, 
+             ss = "https://docs.google.com/spreadsheets/d/1s5xHWu2Ikc6snXFER4YiXzEE5ukfe6_fv59EQAuPSrg/edit#gid=0", 
+             sheet = "Kelly_Will")
+```
